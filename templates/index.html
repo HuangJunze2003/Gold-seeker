@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>黄金交易监控系统</title>
+    <style>
+        body { font-family: Arial; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .price { font-size: 48px; font-weight: bold; color: #333; }
+        .signal { padding: 10px 20px; border-radius: 5px; font-weight: bold; display: inline-block; }
+        .BUY { background: #4caf50; color: white; }
+        .SELL { background: #f44336; color: white; }
+        .HOLD { background: #ff9800; color: white; }
+        .indicators { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .indicator { text-align: center; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+        .indicator-value { font-size: 24px; font-weight: bold; color: #2196f3; }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>AU9999 黄金实时监控</h1>
+        <div class="card">
+            <div class="price" id="price">--</div>
+            <div id="time"></div>
+        </div>
+        <div class="card">
+            <h2>价格走势</h2>
+            <div class="chart-container">
+                <canvas id="chart"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <h2>交易信号</h2>
+            <div class="signal" id="signal">HOLD</div>
+            <p id="reason"></p>
+        </div>
+        <div class="card">
+            <h2>技术指标</h2>
+            <div class="indicators">
+                <div class="indicator">
+                    <div>MA5</div>
+                    <div class="indicator-value" id="ma5">--</div>
+                </div>
+                <div class="indicator">
+                    <div>MA20</div>
+                    <div class="indicator-value" id="ma20">--</div>
+                </div>
+                <div class="indicator">
+                    <div>RSI</div>
+                    <div class="indicator-value" id="rsi">--</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let chart;
+        function initChart() {
+            const ctx = document.getElementById('chart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '黄金价格',
+                        data: [],
+                        borderColor: '#2196f3',
+                        tension: 0.1,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: false }
+                    }
+                }
+            });
+        }
+
+        function updateData() {
+            fetch('/api/data')
+                .then(r => r.json())
+                .then(data => {
+                    const latest = data.history[data.history.length - 1];
+                    if (latest) {
+                        document.getElementById('price').textContent = latest.price.toFixed(2);
+                        document.getElementById('time').textContent = latest.time;
+                    }
+
+                    chart.data.labels = data.history.map(h => h.time.split(' ')[1]);
+                    chart.data.datasets[0].data = data.history.map(h => h.price);
+                    chart.update();
+
+                    const a = data.analysis;
+                    document.getElementById('signal').textContent = a.signal;
+                    document.getElementById('signal').className = 'signal ' + a.signal;
+                    document.getElementById('reason').textContent = a.reason;
+                    document.getElementById('ma5').textContent = a.ma5 ? a.ma5.toFixed(2) : '--';
+                    document.getElementById('ma20').textContent = a.ma20 ? a.ma20.toFixed(2) : '--';
+                    document.getElementById('rsi').textContent = a.rsi ? a.rsi.toFixed(1) : '--';
+                });
+        }
+
+        initChart();
+        setInterval(updateData, 5000);
+        updateData();
+    </script>
+</body>
+</html>

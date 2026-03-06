@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -I \"http://push2.eastmoney.com/api/qt/stock/get?secid=113.au9999\")",
+      "Bash(curl -s -I \"https://www.goldapi.io/api/XAU/USD\")",
+      "Bash(curl -s \"http://push2.eastmoney.com/api/qt/stock/get?secid=113.au9999\")",
+      "Bash(curl -s \"http://hq.sinajs.cn/list=hf_GC\")"
+    ]
+  }
+}
